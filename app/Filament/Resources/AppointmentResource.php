@@ -1,0 +1,336 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\AppointmentResource\Pages;
+use App\Forms\Components\BooleanField;
+use App\Forms\Components\Selector;
+use App\Models\Appointment;
+use App\Models\Patient;
+use App\Models\Product;
+use App\Models\User;
+use App\Support\SharedTableColumns;
+use Carbon\Carbon;
+use Exception;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+
+class AppointmentResource extends Resource
+{
+    protected static ?string $model = Appointment::class;
+
+    protected static ?string $navigationIcon = 'fas-calendar-days';
+
+    protected static ?string $label = "موعد";
+    protected static ?string $pluralLabel = "المواعيد";
+
+    protected static ?string $navigationGroup = "إدارة المرضى";
+
+    /**
+     * @throws Exception
+     */
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->defaultSort('created_at', 'desc')
+            ->columns([
+                Tables\Columns\TextColumn::make('patient.name')
+                    ->label('المريض')
+                    ->searchable()
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('center.name')
+                    ->label('المركز')
+                    ->badge()
+                    ->searchable()
+                    ->alignCenter()
+                    ->color('gray')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('doctor.name')
+                    ->label('الطبيب')
+                    ->alignCenter()
+                    ->badge()
+                    ->searchable()
+                    ->color('info')
+                    ->placeholder('-')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('date')
+                    ->label('التاريخ')
+                    ->date('d/m/Y')
+                    ->alignCenter()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('time')
+                    ->label('الوقت')
+                    ->time('h:i A')
+                    ->alignCenter()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('status')
+                    ->label('الحالة')
+                    ->badge()
+                    ->formatStateUsing(fn($state) => match ($state) {
+                        'pending' => 'قيد الانتظار',
+                        'confirmed' => 'مؤكد',
+                        'cancelled' => 'ملغي',
+                        'completed' => 'مكتمل',
+                        default => 'غير معروف',
+                    })
+                    ->alignCenter()
+                    ->color(fn($state) => match ($state) {
+                        'pending' => 'warning',
+                        'confirmed' => 'success',
+                        'cancelled' => 'danger',
+                        'completed' => 'primary',
+                        default => 'secondary',
+                    })
+                    ->sortable(),
+                Tables\Columns\IconColumn::make('intended')
+                    ->label('الحضور')
+                    ->alignCenter()
+                    ->sortable()
+                    ->boolean(),
+                Tables\Columns\TextColumn::make('time_spent')
+                    ->label('المدة')
+                    ->alignCenter()
+                    ->alignCenter()
+                    ->getStateUsing(function (Appointment $record) {
+                        if ($record->start_time && $record->end_time) {
+                            $start = Carbon::parse($record->start_time);
+                            $end = Carbon::parse($record->end_time);
+                            return $start->diffInMinutes($end);
+                        }
+                        return '-';
+                    }),
+
+                ...SharedTableColumns::blame(),
+            ])
+            ->filters([
+                Tables\Filters\TrashedFilter::make(),
+            ])
+            ->actions([
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('confirm')
+                        ->label('تأكيد')
+                        ->icon('fas-check-circle')
+                        ->action(function (Appointment $record) {
+                            $record->update(['status' => 'confirmed']);
+
+                            if ($record->order) {
+                                $record->order->update(['status' => 'confirmed']);
+                            }
+                        })
+                        ->color('success')
+                        ->visible(fn(Appointment $record) => $record->status === 'pending')
+                        ->requiresConfirmation(),
+
+                    Tables\Actions\Action::make('cancel')
+                        ->label('إلغاء')
+                        ->icon('fas-times-circle')
+                        ->action(function (Appointment $record) {
+                            $record->update(['status' => 'cancelled']);
+
+                            if ($record->order) {
+                                $record->order->update(['status' => 'cancelled']);
+                            }
+                        })
+                        ->color('danger')
+                        ->visible(fn(Appointment $record) => $record->status === 'pending')
+                        ->requiresConfirmation(),
+                    Tables\Actions\Action::make('complete')
+                        ->label('إكمال')
+                        ->icon('fas-check-double')
+                        ->form([
+                            Forms\Components\TimePicker::make('start_time')
+                                ->label('وقت البداية')
+                                ->displayFormat('h:i A')
+                                ->default(fn(Appointment $record) => $record->start_time)
+                                ->required(),
+                            Forms\Components\TimePicker::make('end_time')
+                                ->label('وقت النهاية')
+                                ->displayFormat('h:i A')
+                                ->default(fn(Appointment $record) => $record->end_time)
+                                ->required(),
+                        ])
+                        ->action(fn(Appointment $record, array $data) => $record->update([
+                            'status' => 'completed',
+                            'intended' => true,
+                            'start_time' => Carbon::parse($data['start_time'])->format('H:i:s'),
+                            'end_time' => Carbon::parse($data['end_time'])->format('H:i:s'),
+                        ]))
+                        ->color('primary')
+                        ->visible(fn(Appointment $record) => $record->status === 'confirmed')
+                        ->requiresConfirmation(),
+
+                    Tables\Actions\Action::make('reschedule')
+                        ->label('إعادة جدولة')
+                        ->icon('fas-calendar-alt')
+                        ->form([
+                            Forms\Components\DatePicker::make('date')
+                                ->label('التاريخ')
+                                ->displayFormat('d/m/Y')
+                                ->default(fn(Appointment $record) => $record->date)
+                                ->required(),
+                            Forms\Components\TimePicker::make('time')
+                                ->label('الوقت')
+                                ->displayFormat('h:i A')
+                                ->default(fn(Appointment $record) => $record->time)
+                                ->required(),
+                        ])
+                        ->action(function (Appointment $record, array $data) {
+                            $record->update([
+                                'status' => 'pending',
+                                'date' => Carbon::parse($data['date'])->format('Y-m-d'),
+                                'time' => Carbon::parse($data['time'])->format('H:i:s'),
+                            ]);
+                        })
+                        ->visible(fn(Appointment $record) => $record->status !== 'completed')
+                        ->requiresConfirmation(false),
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\RestoreAction::make(),
+                    Tables\Actions\ForceDeleteAction::make(),
+                ])
+            ])
+            ->bulkActions([]);
+    }
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Forms\Components\Section::make([
+                    Selector::make('patient_id')
+                        ->label('المريض')
+                        ->reactive()
+                        ->live(onBlur: true)
+                        ->relationship('patient', 'name')
+                        ->afterStateUpdated(function (string $operation, $state, Forms\Set $set) {
+                            if ($operation !== 'create') {
+                                return;
+                            }
+                            $patient = Patient::find($state);
+                            if (!$patient) {
+                                return;
+                            }
+                            $set('device_id', $patient->device_id);
+                        })
+                        ->required(),
+                    Forms\Components\Select::make('status')
+                        ->label('الحالة')
+                        ->options([
+                            'pending' => 'قيد الانتظار',
+                            'confirmed' => 'مؤكد',
+                            'cancelled' => 'ملغي',
+                            'completed' => 'مكتمل',
+                        ])
+                        ->default('pending')
+                        ->required(),
+                    Selector::make('center_id')
+                        ->label('المركز')
+                        ->reactive()
+                        ->relationship('center', 'name')
+                        ->required(),
+                    Selector::make('doctor_id')
+                        ->label('الطبيب')
+                        ->disabled(fn($get) => !$get('center_id'))
+                        ->options(function (Forms\Get $get) {
+                            $centerId = $get('center_id');
+                            if (!$centerId) {
+                                return [];
+                            }
+                            return User::where('center_id', $centerId)
+                                ->where('account_type', 'doctor')
+                                ->pluck('name', 'id')
+                                ->toArray();
+                        }),
+                    Forms\Components\DatePicker::make('date')
+                        ->label('التاريخ')
+                        ->displayFormat('d/m/Y')
+                        ->default(Carbon::now())
+                        ->required(),
+                    Forms\Components\TimePicker::make('time')
+                        ->label('الوقت')
+                        ->displayFormat('h:i A')
+                        ->default(Carbon::now()->format('h:i'))
+                        ->required(),
+                    Selector::make('device_id')
+                        ->label('الجهاز')
+                        ->relationship('device', 'name')
+                        ->reactive()
+                        ->required(),
+                    BooleanField::make('intended')
+                        ->label('الحضور')
+                        ->default(false)
+                        ->required(),
+
+                    BooleanField::make('has_order')
+                        ->label('طلب منتجات')
+                        ->dehydrated()
+                        ->reactive()
+                        ->default(false),
+                ])->columns(3),
+                Forms\Components\Section::make('طلب المنتجات')
+                    ->schema([
+                        Forms\Components\Repeater::make('order_items')
+                            ->label('المنتجات')
+                            ->schema([
+                                Forms\Components\Select::make('product_id')
+                                    ->label('المنتج')
+                                    ->options(Product::all()->pluck('name', 'id'))
+                                    ->required(),
+                                Forms\Components\TextInput::make('quantity')
+                                    ->label('الكمية')
+                                    ->required()
+                                    ->numeric()
+                                    ->rules(fn($get) => collect([
+                                        'required',
+                                        'numeric',
+                                        'min:1',
+                                        $get('product_id')
+                                            ? 'max:' . Product::find($get('product_id'))
+                                                ->stockInCenter(
+                                                    $get('../../center_id')
+                                                    ?? auth()->user()?->center_id
+                                                )
+                                            : null,
+                                    ])->filter()->all())
+                                    ->validationMessages([
+                                        'max' => 'الكمية تتجاوز المخزون المتاح في المركز.',
+                                    ]),
+                            ])
+                            ->columnSpanFull()
+                            ->columns()
+                            ->defaultItems(1)
+                            ->minItems(1)
+                            ->addActionLabel('إضافة منتج'),
+                    ])
+                    ->visible(fn($get) => $get('has_order'))
+                    ->columns(),
+                Forms\Components\Section::make([
+                    Forms\Components\RichEditor::make('notes')
+                        ->label('ملاحظات')
+                        ->columnSpanFull(),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListAppointments::route('/'),
+            'create' => Pages\CreateAppointment::route('/create'),
+            'edit' => Pages\EditAppointment::route('/{record}/edit'),
+            'view' => Pages\ViewAppointment::route('/{record}'),
+        ];
+    }
+}
