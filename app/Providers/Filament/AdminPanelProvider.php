@@ -44,6 +44,7 @@ class AdminPanelProvider extends PanelProvider
             ->profile()
             ->sidebarCollapsibleOnDesktop()
             ->font('Cairo')
+            ->maxContentWidth('full')
             ->colors([
                 'primary' => Color::Teal,
             ])
@@ -52,8 +53,9 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Pages\Dashboard::class,
             ])
-//            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
+            //            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
+                //                ClockWidget::class,
                 SystemStats::class,
                 LatestPendingAppointments::class,
                 TopCentersConsumption::class,
@@ -78,11 +80,15 @@ class AdminPanelProvider extends PanelProvider
             ->plugins([
                 FilamentShieldPlugin::make(),
                 ThemesPlugin::make(),
+                //                FilamentWorldClockPlugin::make()
+                //                    ->setColumnSpan('full')
+                //                    ->setSort(10)
+                //                    ->timezones([
+                //                        'Africa/Tripoli',
+                //                    ]),
             ])
             ->authMiddleware([
                 Authenticate::class,
             ]);
     }
-
-
 }

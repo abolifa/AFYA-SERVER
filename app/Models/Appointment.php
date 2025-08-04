@@ -24,6 +24,8 @@ class Appointment extends Model
 
     protected $guarded = ['id'];
 
+    protected $appends = ['is_dirty'];
+
     public function center(): BelongsTo
     {
         return $this->belongsTo(Center::class);
@@ -47,5 +49,14 @@ class Appointment extends Model
     public function device(): BelongsTo
     {
         return $this->belongsTo(Device::class);
+    }
+
+    public function getIsDirtyAttribute(): bool
+    {
+        $now = now(); // or Carbon::now()
+        $appointmentDateTime = Carbon::parse("{$this->date} {$this->time}");
+
+        // Mark as dirty if the datetime has already passed
+        return $appointmentDateTime->isPast() || in_array($this->status, ['cancelled', 'completed']);
     }
 }

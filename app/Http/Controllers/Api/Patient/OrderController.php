@@ -20,7 +20,8 @@ class OrderController
         $orders = $patient
             ->orders()
             ->with(['items.product', 'center', 'patient'])
-            ->get();
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
 
         return response()->json($orders);
     }

@@ -58,4 +58,9 @@ class Patient extends Authenticatable
     {
         return $this->belongsTo(Device::class);
     }
+
+    public function prescriptions(): HasMany
+    {
+        return $this->hasMany(Prescription::class);
+    }
 }

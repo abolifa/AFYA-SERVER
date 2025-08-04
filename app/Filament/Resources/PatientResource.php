@@ -173,6 +173,7 @@ class PatientResource extends Resource
                 Tables\Columns\TextColumn::make('phone')
                     ->label('الهاتف')
                     ->alignCenter()
+                    ->copyable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
                     ->label('البريد')
@@ -243,9 +244,9 @@ class PatientResource extends Resource
                 ]),
             ])
             ->bulkActions([
-//                Tables\Actions\BulkActionGroup::make([
-//                    Tables\Actions\DeleteBulkAction::make(),
-//                ]),
+                //                Tables\Actions\BulkActionGroup::make([
+                //                    Tables\Actions\DeleteBulkAction::make(),
+                //                ]),
             ]);
     }
 

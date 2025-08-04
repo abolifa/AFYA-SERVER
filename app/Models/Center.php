@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static where(string $string, string $string1, mixed $id)
  * @method static count()
  * @method static find($param)
+ * @method static select(string $string, string $string1)
  * @property mixed $id
  */
 class Center extends Model
@@ -36,7 +37,8 @@ class Center extends Model
 
     public function doctors(): HasMany
     {
-        return $this->hasMany(User::class, 'doctor_id');
+        return $this->hasMany(User::class, 'center_id')
+            ->where('account_type', 'doctor');
     }
 
     public function appointments(): HasMany

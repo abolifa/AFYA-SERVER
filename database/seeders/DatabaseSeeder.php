@@ -15,7 +15,6 @@ use App\Models\Supplier;
 use App\Models\TransferInvoice;
 use App\Models\TransferInvoiceItem;
 use App\Models\User;
-use App\Models\Vital;
 use Illuminate\Database\Seeder;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -43,77 +42,72 @@ class DatabaseSeeder extends Seeder
             $user->assignRole('super_admin');
         }
 
-        Product::factory(50)->create();
-        Supplier::factory(20)->create();
-        Order::factory(50)->create();
+        $products = Product::factory(50)->create();
+        $suppliers = Supplier::factory(30)->create();
 
-        Center::factory(5)
+// ✅ Create 100 centers with full structure
+        $centers = Center::factory(100)
             ->has(Schedule::factory(7), 'schedules')
-            ->has(User::factory(2), 'users')
-            ->create()
-            ->each(function (Center $center) {
-                $patients = Patient::factory(20)
-                    ->for($center, 'center')
-                    ->create();
+            ->create();
 
-                foreach ($patients as $patient) {
-                    Vital::factory(20)
-                        ->for($patient, 'patient')
-                        ->create();
+        foreach ($centers as $center) {
+            // Add users
+            User::factory(rand(1, 3))->create(['center_id' => $center->id]);
 
-                    Appointment::factory(3)
-                        ->for($center, 'center')
-                        ->for($patient, 'patient')
-                        ->create();
-                }
+            // Patients
+            $patients = Patient::factory(15)->create(['center_id' => $center->id]);
 
-                foreach ($patients as $patient) {
-                    $attachAppointment = rand(1, 100) <= 70;
-                    $orderFactory = Order::factory()
-                        ->for($center, 'center')
-                        ->for($patient, 'patient');
+            // Appointments for patients
+            foreach ($patients as $patient) {
+                Appointment::factory(rand(2, 5))->create([
+                    'center_id' => $center->id,
+                    'patient_id' => $patient->id,
+                ]);
+            }
 
-                    if ($attachAppointment) {
-                        $appointment = $patient->appointments()->inRandomOrder()->first();
-                        if ($appointment) {
-                            $orderFactory->for($appointment, 'appointment');
-                        }
-                    }
+            // Orders with order items
+            foreach ($patients as $patient) {
+                $appointment = Appointment::where('patient_id', $patient->id)->inRandomOrder()->first();
 
-                    $orderFactory
-                        ->has(
-                            OrderItem::factory(rand(1, 5)),
-                            'items'
-                        )
-                        ->create();
-                }
+                $order = Order::factory()->create([
+                    'center_id' => $center->id,
+                    'patient_id' => $patient->id,
+                    'appointment_id' => $appointment?->id,
+                ]);
 
+                OrderItem::factory(rand(1, 3))->create([
+                    'order_id' => $order->id,
+                    'product_id' => $products->random()->id,
+                ]);
+            }
 
-                Supplier::inRandomOrder()
-                    ->take(5)
-                    ->each(function (Supplier $supplier) use ($center) {
-                        Invoice::factory()
-                            ->for($center, 'center')
-                            ->for($supplier, 'supplier')
-                            ->has(
-                                InvoiceItem::factory(rand(1, 6)),
-                                'items'
-                            )
-                            ->create();
-                    });
+            // Invoices
+            foreach ($suppliers->random(rand(2, 4)) as $supplier) {
+                $invoice = Invoice::factory()->create([
+                    'center_id' => $center->id,
+                    'supplier_id' => $supplier->id,
+                ]);
 
-                $others = Center::where('id', '!=', $center->id)->get();
-                foreach (range(1, 3) as $ignored) {
-                    $toCenter = $others->random();
-                    TransferInvoice::factory()
-                        ->for($center, 'fromCenter')
-                        ->for($toCenter, 'toCenter')
-                        ->has(
-                            TransferInvoiceItem::factory(rand(1, 4)),
-                            'items'
-                        )
-                        ->create();
-                }
-            });
+                InvoiceItem::factory(rand(1, 4))->create([
+                    'invoice_id' => $invoice->id,
+                    'product_id' => $products->random()->id,
+                ]);
+            }
+
+            // Transfer invoices to other centers
+            $otherCenters = $centers->where('id', '!=', $center->id)->random(2);
+            foreach ($otherCenters as $toCenter) {
+                $transfer = TransferInvoice::factory()->create([
+                    'from_center_id' => $center->id,
+                    'to_center_id' => $toCenter->id,
+                ]);
+
+                TransferInvoiceItem::factory(rand(1, 3))->create([
+                    'transfer_invoice_id' => $transfer->id,
+                    'product_id' => $products->random()->id,
+                ]);
+            }
+        }
+
     }
 }

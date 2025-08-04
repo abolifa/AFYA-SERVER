@@ -259,8 +259,7 @@ class AppointmentResource extends Resource
                     Selector::make('device_id')
                         ->label('الجهاز')
                         ->relationship('device', 'name')
-                        ->reactive()
-                        ->required(),
+                        ->reactive(),
                     BooleanField::make('intended')
                         ->label('الحضور')
                         ->default(false)

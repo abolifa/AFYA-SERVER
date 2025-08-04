@@ -14,6 +14,20 @@ use Illuminate\Validation\Rule;
 class AuthController
 {
 
+    public function checkNationalId(Request $request): JsonResponse
+    {
+        $request->validate([
+            'national_id' => ['required', 'string', 'size:12', 'regex:/^\d{12}$/'],
+        ], [
+            'national_id.required' => 'الرقم الوطني مطلوب',
+            'national_id.size' => 'الرقم الوطني يجب أن يتكون من 12 رقم',
+            'national_id.regex' => 'الرقم الوطني يجب أن يتكون من أرقام فقط',
+            'national_id.unique' => 'الرقم الوطني مسجل بالفعل',
+        ]);
+        $exists = Patient::where('national_id', $request->national_id)->exists();
+        return response()->json(['exists' => $exists]);
+    }
+
     public function login(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -21,6 +35,15 @@ class AuthController
                 'required', 'string', 'size:10', 'starts_with:091,092,093,094,095', 'regex:/^[0-9]+$/'
             ],
             'password' => 'required|string|min:6',
+        ], [
+            'phone.required' => 'رقم الهاتف مطلوب',
+            'phone.size' => 'رقم الهاتف يجب أن يتكون من 10 أرقام',
+            'phone.starts_with' => 'رقم الهاتف يجب أن يبدأ بأحد الأرقام: 091, 092, 093, 094, 095',
+            'phone.regex' => 'رقم الهاتف يجب أن يتكون من أرقام فقط',
+            'password.required' => 'كلمة المرور مطلوبة',
+            'password.min' => 'كلمة المرور يجب أن تكون على الأقل 6 أحرف',
+            'password.string' => 'كلمة المرور يجب أن تكون نصاً',
+            'password.confirmed' => 'تأكيد كلمة المرور غير متطابق',
         ]);
 
         $user = Patient::where('phone', $validated['phone'])->first();
@@ -65,6 +88,25 @@ class AuthController
             'blood_group' => ['nullable', 'string', 'max:10'],
             'image' => ['nullable', 'string'],
             'center_id' => ['nullable', 'exists:centers,id'],
+        ], [
+            'national_id.required' => 'الرقم الوطني مطلوب',
+            'national_id.size' => 'الرقم الوطني يجب أن يتكون من 12 رقم',
+            'national_id.regex' => 'الرقم الوطني يجب أن يتكون من أرقام فقط',
+            'national_id.unique' => 'الرقم الوطني مسجل بالفعل',
+            'family_issue_number.max' => 'رقم إصدار العائلة يجب ألا يتجاوز 255 حرفاً',
+            'name.required' => 'الاسم مطلوب',
+            'name.max' => 'الاسم يجب ألا يتجاوز 255 حرفاً',
+            'phone.required' => 'رقم الهاتف مطلوب',
+            'phone.size' => 'رقم الهاتف يجب أن يتكون من 10 أرقام',
+            'phone.starts_with' => 'رقم الهاتف يجب أن يبدأ بأحد الأرقام: 091, 092, 093, 094, 095',
+            'phone.regex' => 'رقم الهاتف يجب أن يتكون من أرقام فقط',
+            'phone.unique' => 'رقم الهاتف مسجل بالفعل',
+            'password.required' => 'كلمة المرور مطلوبة',
+            'password.min' => 'كلمة المرور يجب أن تكون على الأقل 6 أحرف',
+            'password.confirmed' => 'تأكيد كلمة المرور غير متطابق',
+            'email.email' => 'البريد الإلكتروني غير صالح',
+            'email.max' => 'البريد الإلكتروني يجب ألا يتجاوز 255 حرفاً',
+            'email.unique' => 'البريد الإلكتروني مسجل بالفعل',
         ]);
 
         do {
@@ -107,13 +149,14 @@ class AuthController
 
     public function me(Request $request): JsonResponse
     {
-        return response()->json($request->user());
+        return response()->json($request->user()->load('center'));
     }
 
 
     public function update(Request $request): JsonResponse
     {
         $patient = $request->user();
+
         $data = $request->validate([
             'national_id' => [
                 'nullable', 'string', 'size:12', 'regex:/^\d{12}$/',
@@ -142,7 +185,10 @@ class AuthController
         }
 
         $patient->fill($data);
-        $patient->save();
+
+        // Prevent BlamesUser trait from modifying updated_by
+        $patient->saveQuietly();
+
         return response()->json([
             'message' => 'تم تحديث البيانات بنجاح',
             'user' => $patient,

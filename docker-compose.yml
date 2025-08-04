@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+    afya_app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: afya-app
+        restart: always
+        volumes:
+            - .:/var/www
+        networks:
+            - web
+
+    afya_db:
+        image: mysql:8.0
+        container_name: afya-db
+        restart: always
+        environment:
+            MYSQL_DATABASE: afya
+            MYSQL_ROOT_PASSWORD: Kishmee@mg5
+            MYSQL_USER: afya
+            MYSQL_PASSWORD: Kishmee@mg5
+        volumes:
+            - afya-db-data:/var/lib/mysql
+        networks:
+            - web
+
+    nginx:
+        image: nginx:alpine
+        container_name: afya-nginx
+        restart: always
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - .:/var/www
+            - ./nginx.conf:/etc/nginx/nginx.conf:ro
+            # mount your certs directory (host) into container:
+            - ./certs:/etc/letsencrypt:ro
+        depends_on:
+            - afya_app
+        networks:
+            - web
+
+volumes:
+    afya-db-data:
+
+networks:
+    web:
+        external: true
