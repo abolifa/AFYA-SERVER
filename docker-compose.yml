@@ -1,3 +1,4 @@
+# /opt/apps/afya/docker-compose.yml
 version: "3.8"
 
 services:
@@ -36,7 +37,6 @@ services:
         volumes:
             - .:/var/www
             - ./nginx.conf:/etc/nginx/nginx.conf:ro
-            # mount your certs directory (host) into container:
             - ./certs:/etc/letsencrypt:ro
         depends_on:
             - afya_app
