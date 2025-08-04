@@ -1,9 +1,10 @@
 # /opt/apps/afya/Dockerfile
-FROM php:8.2-fpm
+
+FROM php:8.3-fpm
 
 WORKDIR /var/www
 
-# 1) Install system libs for intl + zip + gd + mysql
+# install system libs (intl, zip, gd, mysql, etc)
 RUN apt-get update \
  && apt-get install -y \
       git \
@@ -26,10 +27,10 @@ RUN apt-get update \
       zip \
  && rm -rf /var/lib/apt/lists/*
 
-# 2) Install Composer
+# install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# 3) Copy app & install PHP deps
+# copy app & install PHP deps
 COPY . .
 RUN composer install --no-interaction --optimize-autoloader \
  && chown -R www-data:www-data /var/www \
