@@ -10,104 +10,115 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Patient;
 use App\Models\Product;
-use App\Models\Schedule;
 use App\Models\Supplier;
 use App\Models\TransferInvoice;
 use App\Models\TransferInvoiceItem;
 use App\Models\User;
+use App\Models\Vital;
 use Illuminate\Database\Seeder;
-
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
+        // 1. Create some centers first
+        Center::factory()->count(5)->create();
 
-        User::factory()->create([
-            'name' => 'Abdurahman',
-            'email' => 'admin@gmail.com',
-            'password' => '091091',
-            'can_see_other_records' => true,
-        ]);
+        // Helpers to pull existing IDs
+        $randCenter = fn() => Center::inRandomOrder()->first()->id;
+        $randPatient = fn() => Patient::inRandomOrder()->first()->id;
+        $randDoctor = fn() => User::where('is_doctor', true)->inRandomOrder()->first()->id;
+        $randProduct = fn() => Product::inRandomOrder()->first()->id;
+        $randSupplier = fn() => Supplier::inRandomOrder()->first()->id;
 
+        // 2. Create your admin user (override center_id)
+        User::factory()
+            ->state(fn() => ['center_id' => $randCenter()])
+            ->create([
+                'name' => 'Abdurahman',
+                'email' => 'admin@gmail.com',
+                'password' => bcrypt('091091'),
+                'can_see_other_records' => true,
+            ]);
 
-        $this->call(ShieldSeeder::class);
-
-        $user = User::where('email', 'admin@gmail.com')->first();
-        if ($user) {
-            $user->assignRole('super_admin');
-        }
-
-        $products = Product::factory(50)->create();
-        $suppliers = Supplier::factory(30)->create();
-
-// ✅ Create 100 centers with full structure
-        $centers = Center::factory(100)
-            ->has(Schedule::factory(7), 'schedules')
+        // 3. Create more users (override center_id on each)
+        User::factory()
+            ->count(20)
+            ->state(fn() => ['center_id' => $randCenter()])
             ->create();
 
-        foreach ($centers as $center) {
-            // Add users
-            User::factory(rand(1, 3))->create(['center_id' => $center->id]);
+        // 4. Create patients (override center_id on each)
+        Patient::factory()
+            ->count(50)
+            ->state(fn() => ['center_id' => $randCenter()])
+            ->create();
 
-            // Patients
-            $patients = Patient::factory(15)->create(['center_id' => $center->id]);
+        // 5. Products & Suppliers have no closure-fields, so they’re safe
+        Product::factory(30)->create();
+        Supplier::factory(10)->create();
 
-            // Appointments for patients
-            foreach ($patients as $patient) {
-                Appointment::factory(rand(2, 5))->create([
-                    'center_id' => $center->id,
-                    'patient_id' => $patient->id,
-                ]);
-            }
+        // 6. Appointments (override all three fk’s)
+        Appointment::factory(100)
+            ->state(fn() => [
+                'center_id' => $randCenter(),
+                'patient_id' => $randPatient(),
+                'doctor_id' => $randDoctor(),
+            ])
+            ->create();
 
-            // Orders with order items
-            foreach ($patients as $patient) {
-                $appointment = Appointment::where('patient_id', $patient->id)->inRandomOrder()->first();
+        // 7. Orders + OrderItems
+        Order::factory(80)
+            ->state(fn() => [
+                'center_id' => $randCenter(),
+                'patient_id' => $randPatient(),
+            ])
+            ->create()
+            ->each(function (Order $order) use ($randProduct) {
+                OrderItem::factory(rand(1, 5))
+                    ->state(fn() => [
+                        'order_id' => $order->id,
+                        'product_id' => $randProduct(),
+                    ])
+                    ->create();
+            });
 
-                $order = Order::factory()->create([
-                    'center_id' => $center->id,
-                    'patient_id' => $patient->id,
-                    'appointment_id' => $appointment?->id,
-                ]);
+        // 8. Invoices + InvoiceItems
+        Invoice::factory(40)
+            ->state(fn() => [
+                'center_id' => $randCenter(),
+                'supplier_id' => $randSupplier(),
+            ])
+            ->create()
+            ->each(function (Invoice $inv) use ($randProduct) {
+                InvoiceItem::factory(rand(1, 4))
+                    ->state(fn() => [
+                        'invoice_id' => $inv->id,
+                        'product_id' => $randProduct(),
+                    ])
+                    ->create();
+            });
 
-                OrderItem::factory(rand(1, 3))->create([
-                    'order_id' => $order->id,
-                    'product_id' => $products->random()->id,
-                ]);
-            }
+        // 9. TransferInvoices + TransferInvoiceItems
+        TransferInvoice::factory(20)
+            ->state(fn() => [
+                'from_center_id' => $randCenter(),
+                'to_center_id' => $randCenter(),
+            ])
+            ->create()
+            ->each(function (TransferInvoice $ti) use ($randProduct) {
+                TransferInvoiceItem::factory(rand(1, 3))
+                    ->state(fn() => [
+                        'transfer_invoice_id' => $ti->id,
+                        'product_id' => $randProduct(),
+                    ])
+                    ->create();
+            });
 
-            // Invoices
-            foreach ($suppliers->random(rand(2, 4)) as $supplier) {
-                $invoice = Invoice::factory()->create([
-                    'center_id' => $center->id,
-                    'supplier_id' => $supplier->id,
-                ]);
-
-                InvoiceItem::factory(rand(1, 4))->create([
-                    'invoice_id' => $invoice->id,
-                    'product_id' => $products->random()->id,
-                ]);
-            }
-
-            // Transfer invoices to other centers
-            $otherCenters = $centers->where('id', '!=', $center->id)->random(2);
-            foreach ($otherCenters as $toCenter) {
-                $transfer = TransferInvoice::factory()->create([
-                    'from_center_id' => $center->id,
-                    'to_center_id' => $toCenter->id,
-                ]);
-
-                TransferInvoiceItem::factory(rand(1, 3))->create([
-                    'transfer_invoice_id' => $transfer->id,
-                    'product_id' => $products->random()->id,
-                ]);
-            }
-        }
-
+        // 10. Vitals for a subset of patients
+        Patient::inRandomOrder()->take(30)->each(function (Patient $patient) {
+            Vital::factory(rand(1, 3))
+                ->state(['patient_id' => $patient->id])
+                ->create();
+        });
     }
 }

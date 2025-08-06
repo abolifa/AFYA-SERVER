@@ -19,16 +19,12 @@ class OrderFactory extends Factory
      */
     public function definition(): array
     {
-        $center = Center::factory();
-        $patient = Patient::factory()->for($center, 'center');
 
         return [
-            'center_id' => $center,
-            'patient_id' => $patient,
+            'center_id' => Center::factory(),
+            'patient_id' => Patient::factory(),
             'appointment_id' => null,
-            'status' => $this->faker->randomElement([
-                'pending', 'confirmed', 'cancelled'
-            ]),
+            'status' => $this->faker->randomElement(['pending', 'confirmed', 'cancelled']),
         ];
     }
 }

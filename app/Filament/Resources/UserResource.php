@@ -81,6 +81,10 @@ class UserResource extends Resource
                         ->default(false)
                         ->helperText('إذا تم تفعيل هذا الخيار، سيتمكن المستخدم من رؤية سجلات المستخدمين الآخرين في النظام.')
                         ->default(false),
+                    BooleanField::make('is_doctor')
+                        ->label('طبيب')
+                        ->default(false)
+                        ->helperText('إذا تم تفعيل هذا الخيار، سيتمكن المستخدم من الوصول إلى ميزات الطبيب.'),
                 ])->columns(),
             ]);
     }
@@ -121,6 +125,27 @@ class UserResource extends Resource
                     })
                     ->placeholder('-')
                     ->sortable(),
+                Tables\Columns\IconColumn::make('is_active')
+                    ->label('نشط')
+                    ->boolean()
+                    ->sortable()
+                    ->toggleable()
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('danger')
+                    ->alignCenter(),
+                Tables\Columns\IconColumn::make('is_doctor')
+                    ->label('طبيب')
+                    ->boolean()
+                    ->sortable()
+                    ->toggleable()
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('danger')
+                    ->alignCenter(),
+
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),

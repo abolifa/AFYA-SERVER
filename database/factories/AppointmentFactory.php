@@ -21,9 +21,9 @@ class AppointmentFactory extends Factory
     public function definition(): array
     {
         return [
-            'center_id' => Center::factory(),
-            'patient_id' => Patient::factory(),
-            'doctor_id' => $this->faker->boolean(80) ? User::factory() : null,
+            'center_id' => fn(array $attributes) => $attributes['center_id'] ?? Center::factory(),
+            'patient_id' => fn(array $attributes) => $attributes['patient_id'] ?? Patient::factory(),
+            'doctor_id' => fn(array $attributes) => $attributes['doctor_id'] ?? User::factory(),
             'date' => $this->faker->date(),
             'time' => $this->faker->time(),
             'status' => $this->faker->randomElement(['pending', 'confirmed', 'cancelled', 'completed']),

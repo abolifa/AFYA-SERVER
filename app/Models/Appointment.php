@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Traits\BlamesUser;
+use App\Models\Traits\ScopeByCenter;
 use Database\Factories\AppointmentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,7 +21,7 @@ use Illuminate\Support\Carbon;
 class Appointment extends Model
 {
     /** @use HasFactory<AppointmentFactory> */
-    use HasFactory, SoftDeletes, BlamesUser;
+    use HasFactory, SoftDeletes, BlamesUser, ScopeByCenter;
 
     protected $guarded = ['id'];
 
@@ -53,10 +54,7 @@ class Appointment extends Model
 
     public function getIsDirtyAttribute(): bool
     {
-        $now = now(); // or Carbon::now()
-        $appointmentDateTime = Carbon::parse("{$this->date} {$this->time}");
-
-        // Mark as dirty if the datetime has already passed
+        $appointmentDateTime = Carbon::parse("$this->date $this->time");
         return $appointmentDateTime->isPast() || in_array($this->status, ['cancelled', 'completed']);
     }
 }

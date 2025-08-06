@@ -35,7 +35,7 @@ class PatientFactory extends Factory
             'blood_group' => $this->faker->optional()->randomElement(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']),
             'image' => null,
             'verified' => $this->faker->boolean(),
-            'center_id' => Center::factory(),
+            'center_id' => fn(array $attributes) => $attributes['center_id'] ?? Center::factory(),
             'remember_token' => Str::random(10),
         ];
     }

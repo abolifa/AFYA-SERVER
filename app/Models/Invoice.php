@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Traits\BlamesUser;
+use App\Models\Traits\ScopeByCenter;
 use Database\Factories\InvoiceFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Invoice extends Model
 {
     /** @use HasFactory<InvoiceFactory> */
-    use HasFactory, SoftDeletes, BlamesUser;
+    use HasFactory, SoftDeletes, BlamesUser, ScopeByCenter;
 
     protected $guarded = ['id'];
 

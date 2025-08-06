@@ -18,12 +18,10 @@ class TransferInvoiceFactory extends Factory
      */
     public function definition(): array
     {
-        $from = Center::factory();
-        $to = Center::factory();
 
         return [
-            'from_center_id' => $from,
-            'to_center_id' => $to,
+            'from_center_id' => Center::factory(),
+            'to_center_id' => Center::factory(),
             'status' => $this->faker->randomElement([
                 'pending', 'confirmed', 'cancelled'
             ]),

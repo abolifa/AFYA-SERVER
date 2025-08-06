@@ -21,7 +21,7 @@ class SystemStats extends BaseWidget
     {
         $counts = Cache::remember(
             'dashboard_stats_static',
-            now()->addMinutes(30),
+            now()->addMinutes(),
             fn() => [
                 'centers' => Center::count(),
                 'doctors' => User::where('is_doctor', true)->count(),

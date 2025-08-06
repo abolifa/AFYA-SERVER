@@ -20,13 +20,9 @@ class InvoiceFactory extends Factory
     public function definition(): array
     {
         return [
-            'center_id' => Center::factory(),
-            'supplier_id' => $this->faker->boolean()
-                ? Supplier::factory()
-                : null,
-            'status' => $this->faker->randomElement([
-                'pending', 'confirmed', 'cancelled'
-            ]),
+            'center_id' => Center::factory(), // default
+            'supplier_id' => Supplier::factory(), // default
+            'status' => $this->faker->randomElement(['pending', 'confirmed', 'cancelled']),
         ];
     }
 }

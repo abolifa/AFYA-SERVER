@@ -30,11 +30,11 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->unique()->numerify('091#######'),
             'password' => static::$password ??= Hash::make('091091'),
-            'center_id' => Center::factory(),
+            'center_id' => fn(array $attributes) => $attributes['center_id'] ?? Center::factory(),
             'is_active' => true,
             'remember_token' => Str::random(10),
-            'can_see_other_records' => fake()->boolean(50),
-            'is_doctor' => fake()->boolean(50),
+            'can_see_other_records' => false,
+            'is_doctor' => fake()->boolean(),
         ];
     }
 

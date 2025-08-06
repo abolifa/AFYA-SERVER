@@ -14,9 +14,12 @@ use Carbon\Carbon;
 use Exception;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Set;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+
 
 class AppointmentResource extends Resource
 {
@@ -34,13 +37,34 @@ class AppointmentResource extends Resource
      */
     public static function table(Table $table): Table
     {
+
+
         return $table
             ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('patient.name')
                     ->label('المريض')
                     ->searchable()
-                    ->numeric()
+                    ->formatStateUsing(
+                        function ($record, $state) {
+                            $patient = $record->patient;
+                            if ($patient->center_id !== $record->center_id) {
+                                return $state . ' (خارج المركز)';
+                            } else {
+                                return $state;
+                            }
+                        }
+                    )
+                    ->color(
+                        function ($record) {
+                            $patient = $record->patient;
+                            if ($patient->center_id !== $record->center_id) {
+                                return 'warning';
+                            } else {
+                                return null;
+                            }
+                        }
+                    )
                     ->sortable(),
                 Tables\Columns\TextColumn::make('center.name')
                     ->label('المركز')
@@ -202,20 +226,26 @@ class AppointmentResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Section::make([
-                    Selector::make('patient_id')
+                    Forms\Components\Select::make('patient_id')
                         ->label('المريض')
+                        ->options(Patient::pluck('name', 'id'))
                         ->reactive()
-                        ->live(onBlur: true)
-                        ->relationship('patient', 'name')
-                        ->afterStateUpdated(function (string $operation, $state, Forms\Set $set) {
-                            if ($operation !== 'create') {
-                                return;
+                        ->native(false)
+                        ->searchable()
+                        ->preload()
+                        ->afterStateUpdated(function (string $operation, $state, Set $set, Forms\Get $get) {
+                            if ($state) {
+                                $patient = Patient::find($state);
+                                if ($patient) {
+                                    $set('device_id', $patient->device_id);
+                                }
+                                if ($get('center_id') !== null && $patient->center_id !== $get('center_id')) {
+                                    Notification::make()
+                                        ->body('المريض المحدد ينتمي إلى مركز مختلف.')
+                                        ->danger()
+                                        ->send();
+                                }
                             }
-                            $patient = Patient::find($state);
-                            if (!$patient) {
-                                return;
-                            }
-                            $set('device_id', $patient->device_id);
                         })
                         ->required(),
                     Forms\Components\Select::make('status')
@@ -231,7 +261,10 @@ class AppointmentResource extends Resource
                     Selector::make('center_id')
                         ->label('المركز')
                         ->reactive()
+                        ->default(fn() => auth()->user()->center_id)
                         ->relationship('center', 'name')
+                        ->disabled(fn() => !auth()->user()->hasRole('super_admin'))
+                        ->dehydrated()
                         ->required(),
                     Selector::make('doctor_id')
                         ->label('الطبيب')
@@ -260,12 +293,12 @@ class AppointmentResource extends Resource
                     Selector::make('device_id')
                         ->label('الجهاز')
                         ->relationship('device', 'name')
+                        ->disabled()
                         ->reactive(),
                     BooleanField::make('intended')
                         ->label('الحضور')
                         ->default(false)
                         ->required(),
-
                     BooleanField::make('has_order')
                         ->label('طلب منتجات')
                         ->dehydrated()
