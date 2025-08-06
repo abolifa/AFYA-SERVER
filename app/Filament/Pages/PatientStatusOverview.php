@@ -12,6 +12,8 @@ class PatientStatusOverview extends Page
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
     protected static string $view = 'filament.pages.patient-status-overview';
+
+    protected static ?string $title = 'حالة المريض الصحية';
     public ?Patient $patient = null;
 
     public static function shouldRegisterNavigation(): bool

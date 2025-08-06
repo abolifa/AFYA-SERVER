@@ -2,12 +2,10 @@
 
 namespace App\Filament\Pages;
 
-use App\Models\Center;
 use App\Models\Product;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Exception;
 use Filament\Forms;
-use Filament\Forms\Components\Select;
 use Filament\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -15,6 +13,7 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
 
 class ProductStock extends Page implements HasTable, Forms\Contracts\HasForms
 {
@@ -25,13 +24,34 @@ class ProductStock extends Page implements HasTable, Forms\Contracts\HasForms
     protected static string $view = 'filament.pages.product-stock';
     protected static ?string $title = 'المخزن';
     protected static ?string $navigationGroup = "إدارة المخزون";
-
     public ?int $selectedCenter = null;
     public bool $showZeroStock = false;
 
+    public function getHeading(): string|Htmlable
+    {
+        if (auth()->user()->hasRole(['admin', 'super_admin'])) {
+            return 'جميع المخازن';
+        } else {
+            return ' مخزن ' . auth()->user()->center?->name ?? 'بدون مركز';
+        }
+    }
+
     public function mount(): void
     {
-        $this->form->fill();
+        $user = auth()->user();
+
+        if ($user->hasRole(['admin', 'super_admin'])) {
+            $this->selectedCenter = null;
+        } elseif ($user->center_id == null) {
+            $this->selectedCenter = "no_center";
+        } else {
+            $this->selectedCenter = $user->center_id;
+        }
+
+        $this->form->fill([
+            'selectedCenter' => $this->selectedCenter,
+            'showZeroStock' => $this->showZeroStock,
+        ]);
     }
 
     /**
@@ -42,7 +62,6 @@ class ProductStock extends Page implements HasTable, Forms\Contracts\HasForms
         return $table
             ->query(function () {
                 $base = Product::query()->select('products.*');
-
                 if (is_null($this->selectedCenter)) {
                     $base = $base->selectRaw(/** @lang sql */ '
                         (
@@ -171,13 +190,13 @@ class ProductStock extends Page implements HasTable, Forms\Contracts\HasForms
     {
         return [
             Forms\Components\Section::make([
-                Select::make('selectedCenter')
-                    ->label('اختر المركز')
-                    ->options(Center::pluck('name', 'id'))
-                    ->searchable()
-                    ->reactive()
-                    ->placeholder('جميع المراكز')
-                    ->afterStateUpdated(fn() => $this->resetTable()),
+//                Select::make('selectedCenter')
+//                    ->label('اختر المركز')
+//                    ->options(Center::pluck('name', 'id'))
+//                    ->searchable()
+//                    ->reactive()
+//                    ->placeholder('جميع المراكز')
+//                    ->afterStateUpdated(fn() => $this->resetTable()),
 
                 Forms\Components\ToggleButtons::make('showZeroStock')
                     ->label('إستثناء المخزون صفر')
