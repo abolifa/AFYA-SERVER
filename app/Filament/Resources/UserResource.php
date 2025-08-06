@@ -12,6 +12,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 
 class UserResource extends Resource
@@ -24,7 +25,6 @@ class UserResource extends Resource
     protected static ?string $pluralLabel = "الحسابات";
 
     protected static ?string $navigationGroup = "إدارة الموارد";
-
 
     public static function form(Form $form): Form
     {
@@ -95,6 +95,13 @@ class UserResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(function (Builder $query) {
+                $query
+                    ->with('center', 'roles')
+                    ->whereDoesntHave('roles', function (Builder $q) {
+                        $q->where('name', 'super_admin');
+                    });
+            })
             ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('name')

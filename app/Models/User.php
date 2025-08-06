@@ -39,7 +39,6 @@ class User extends Authenticatable implements FilamentUser
         'can_see_other_records',
         'is_doctor',
     ];
-
     /**
      * The attributes that should be hidden for serialization.
      *
