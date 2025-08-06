@@ -75,20 +75,12 @@ class UserResource extends Resource
                         ->required()
                         ->native(false),
 
-                    Forms\Components\Select::make('account_type')
-                        ->label('نوع المستخدم')
-                        ->options([
-                            'admin' => 'مدير',
-                            'doctor' => 'طبيب',
-                            'stock' => 'مخزن',
-                            'pharmacy' => 'صيدلية',
-                            'user' => 'مستخدم',
-                        ])
-                        ->native(false)
-                        ->default('user')
-                        ->required()
-                        ->reactive(),
                     BooleanField::make('is_active'),
+                    BooleanField::make('can_see_other_records')
+                        ->label('يمكنه رؤية سجلات المستخدمين الآخرين')
+                        ->default(false)
+                        ->helperText('إذا تم تفعيل هذا الخيار، سيتمكن المستخدم من رؤية سجلات المستخدمين الآخرين في النظام.')
+                        ->default(false),
                 ])->columns(),
             ]);
     }
@@ -120,31 +112,6 @@ class UserResource extends Resource
                     ->color('gray')
                     ->alignCenter()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('account_type')
-                    ->label('نوع المستخدم')
-                    ->formatStateUsing(fn($state) => match ($state) {
-                        'admin' => 'مدير',
-                        'doctor' => 'طبيب',
-                        'stock' => 'مخزن',
-                        'pharmacy' => 'صيدلية',
-                        'user' => 'مستخدم',
-                        default => 'غير محدد',
-                    })
-                    ->color(fn($state) => match ($state) {
-                        'admin' => 'danger',
-                        'doctor' => 'primary',
-                        'stock' => 'warning',
-                        'pharmacy' => 'success',
-                        'user' => 'info',
-                        default => 'gray',
-                    })
-                    ->badge()
-                    ->alignCenter()
-                    ->sortable(),
-                Tables\Columns\ToggleColumn::make('is_active')
-                    ->alignCenter()
-                    ->sortable()
-                    ->label('نشط'),
                 Tables\Columns\TextColumn::make('roles.name')
                     ->label('الصلاحيات')
                     ->alignCenter()
@@ -157,18 +124,6 @@ class UserResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
-                Tables\Filters\SelectFilter::make('account_type')
-                    ->label('نوع المستخدم')
-                    ->options([
-                        'admin' => 'مدير',
-                        'doctor' => 'طبيب',
-                        'stock' => 'مخزن',
-                        'pharmacy' => 'صيدلية',
-                        'user' => 'مستخدم',
-                    ]),
-                Tables\Filters\SelectFilter::make('center_id')
-                    ->label('المركز')
-                    ->relationship('center', 'name'),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
@@ -177,11 +132,6 @@ class UserResource extends Resource
                     Tables\Actions\RestoreAction::make(),
                     Tables\Actions\ForceDeleteAction::make(),
                 ]),
-            ])
-            ->bulkActions([
-//                Tables\Actions\BulkActionGroup::make([
-//                    Tables\Actions\DeleteBulkAction::make(),
-//                ]),
             ]);
     }
 

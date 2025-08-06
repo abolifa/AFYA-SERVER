@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Abdurahman',
             'email' => 'admin@gmail.com',
             'password' => '091091',
-            'account_type' => 'admin',
+            'can_see_other_records' => true,
         ]);
 
 

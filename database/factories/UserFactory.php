@@ -33,7 +33,8 @@ class UserFactory extends Factory
             'center_id' => Center::factory(),
             'is_active' => true,
             'remember_token' => Str::random(10),
-            'account_type' => fake()->randomElement(['user', 'admin', 'doctor', 'stock', 'pharmacy']),
+            'can_see_other_records' => fake()->boolean(50),
+            'is_doctor' => fake()->boolean(50),
         ];
     }
 

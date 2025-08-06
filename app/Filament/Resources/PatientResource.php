@@ -14,6 +14,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 
 class PatientResource extends Resource
 {
@@ -227,7 +228,10 @@ class PatientResource extends Resource
                     ->label('عرض الحالة')
                     ->color('warning')
                     ->icon('fas-eye')
-                    ->url(fn(Patient $record) => '/admin/status-overview/' . $record->id),
+                    ->url(fn(Patient $record): string => '/admin/status-overview/' . $record->id)
+                    ->visible(fn(Patient $record): bool => Auth::user()->is_doctor
+                        || Auth::user()->can('page_PatientStatusOverview')
+                    ),
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\Action::make('approve')
                         ->label('تأكيد')

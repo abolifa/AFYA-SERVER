@@ -242,7 +242,8 @@ class AppointmentResource extends Resource
                                 return [];
                             }
                             return User::where('center_id', $centerId)
-                                ->where('account_type', 'doctor')
+                                ->where('is_doctor', true)
+                                ->where('is_active', true)
                                 ->pluck('name', 'id')
                                 ->toArray();
                         }),

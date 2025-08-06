@@ -78,12 +78,6 @@ class AdminPanelProvider extends PanelProvider
             ->plugins([
                 FilamentShieldPlugin::make(),
                 ThemesPlugin::make(),
-                //                FilamentWorldClockPlugin::make()
-                //                    ->setColumnSpan('full')
-                //                    ->setSort(10)
-                //                    ->timezones([
-                //                        'Africa/Tripoli',
-                //                    ]),
             ])
             ->authMiddleware([
                 Authenticate::class,

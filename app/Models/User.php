@@ -36,7 +36,8 @@ class User extends Authenticatable implements FilamentUser
         'center_id',
         'phone',
         'is_active',
-        'account_type',
+        'can_see_other_records',
+        'is_doctor',
     ];
 
     /**

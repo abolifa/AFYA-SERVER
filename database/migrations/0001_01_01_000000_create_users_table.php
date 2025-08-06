@@ -18,7 +18,8 @@ return new class extends Migration {
             $table->string('password');
             $table->foreignId('center_id')->nullable()->constrained('centers')->nullOnDelete();
             $table->boolean('is_active')->default(true);
-            $table->enum('account_type', ['user', 'admin', 'doctor', 'stock', 'pharmacy'])->default('user')->index();
+            $table->boolean('can_see_other_records')->default(false);
+            $table->boolean('is_doctor')->default(false);
             $table->rememberToken();
 
             $table->softDeletes();

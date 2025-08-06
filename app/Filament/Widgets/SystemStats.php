@@ -24,9 +24,9 @@ class SystemStats extends BaseWidget
             now()->addMinutes(30),
             fn() => [
                 'centers' => Center::count(),
-                'doctors' => User::where('account_type', 'doctor')->count(),
+                'doctors' => User::where('is_doctor', true)->count(),
                 'patients' => Patient::count(),
-            ]
+            ],
         );
 
         $todayAppts = Appointment::whereDate('date', today())->count();
