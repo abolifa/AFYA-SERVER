@@ -71,7 +71,9 @@ class UserResource extends Resource
 
                     Forms\Components\Select::make('roles')
                         ->label('الصلاحيات')
-                        ->relationship('roles', 'name')
+                        ->relationship('roles', 'name', function (Builder $query) {
+                            $query->where('name', '!=', 'super_admin');
+                        })
                         ->required()
                         ->native(false),
 
