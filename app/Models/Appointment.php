@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @method static min(string $string)
  * @method static max(string $string)
  * @method static where(string $string, mixed $id)
+ * @method static count()
  */
 class Appointment extends Model
 {

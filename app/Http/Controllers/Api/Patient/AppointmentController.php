@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Patient;
 
+use App\Models\Scopes\ByCenterScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -11,22 +12,21 @@ class AppointmentController
     public function index(Request $request): JsonResponse
     {
         $patient = $request->user();
-
         $appointments = $patient
             ->appointments()
             ->with(['center', 'doctor'])
+            ->withoutGlobalScope(ByCenterScope::class)
             ->orderBy('date', 'desc')
             ->paginate(10);
-
         return response()->json($appointments);
     }
 
     public function getAppointmentsId(Request $request): JsonResponse
     {
         $patient = $request->user();
-
         $appointments = $patient
             ->appointments()
+            ->withoutGlobalScope(ByCenterScope::class)
             ->orderBy('id', 'desc')
             ->select('id', 'status', 'date', 'time')
             ->get();
@@ -62,6 +62,7 @@ class AppointmentController
     {
         $appointment = $request->user()->appointments()
             ->with(['center', 'doctor'])
+            ->withoutGlobalScope(ByCenterScope::class)
             ->findOrFail($id);
 
         return response()->json($appointment);

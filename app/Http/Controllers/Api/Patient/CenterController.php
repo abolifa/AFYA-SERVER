@@ -15,8 +15,6 @@ class CenterController
         }, 'schedules' => function ($query) {
             $query->select('id', 'center_id', 'day', 'start_time', 'end_time', 'is_active');
         }])
-            ->select('id', 'name', 'phone')
-            ->orderBy('created_at', 'desc')
             ->get();
         return response()->json($centers);
     }

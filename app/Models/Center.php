@@ -38,7 +38,7 @@ class Center extends Model
     public function doctors(): HasMany
     {
         return $this->hasMany(User::class, 'center_id')
-            ->where('account_type', 'doctor');
+            ->where('is_doctor', true);
     }
 
     public function appointments(): HasMany

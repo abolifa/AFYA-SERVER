@@ -184,6 +184,8 @@ class AuthController
             $data['dob'] = Carbon::parse($data['dob']);
         }
 
+        $data['verified'] = false;
+
         $patient->fill($data);
 
         // Prevent BlamesUser trait from modifying updated_by
