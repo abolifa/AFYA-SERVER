@@ -45,6 +45,7 @@ class AdminPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->font('Cairo')
             ->maxContentWidth('full')
+            ->sidebarWidth('300px')
             ->colors([
                 'primary' => Color::Teal,
             ])

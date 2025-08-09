@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use Exception;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -20,15 +21,19 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class SitePanelProvider extends PanelProvider
 {
+    /**
+     * @throws Exception
+     */
     public function panel(Panel $panel): Panel
     {
         return $panel
             ->id('site')
             ->path('site')
             ->maxContentWidth('full')
+            ->sidebarWidth('300px')
             ->profile()
             ->colors([
-                'primary' => Color::Rose,
+                'primary' => Color::Amber,
             ])
             ->font('Cairo')
             ->discoverResources(in: app_path('Filament/Site/Resources'), for: 'App\\Filament\\Site\\Resources')
