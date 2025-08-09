@@ -263,8 +263,8 @@ class AppointmentResource extends Resource
                         ->reactive()
                         ->default(fn() => auth()->user()->center_id)
                         ->relationship('center', 'name')
-                        ->disabled(fn() => !auth()->user()->hasRole('super_admin'))
-                        ->dehydrated()
+//                        ->disabled(fn() => !auth()->user()->hasRole('super_admin'))
+//                        ->dehydrated()
                         ->required(),
                     Selector::make('doctor_id')
                         ->label('الطبيب')

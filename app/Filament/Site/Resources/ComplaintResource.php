@@ -14,33 +14,36 @@ class ComplaintResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label('الإسم')
+                    ->placeholder('-')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('phone')
                     ->label('رقم الهاتف')
+                    ->placeholder('-')
+                    ->alignCenter()
                     ->searchable(),
+                Tables\Columns\TextColumn::make('message')
+                    ->label('الشكوى')
+                    ->placeholder('-')
+                    ->searchable()
+                    ->alignCenter()
+                    ->limit(50),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('تاريخ الإسال')
-                    ->dateTime()
+                    ->label('تاريخ الشكوى')
+                    ->date('d/m/Y')
+                    ->alignCenter()
                     ->sortable(),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
             ]);
     }
 
@@ -55,6 +58,7 @@ class ComplaintResource extends Resource
     {
         return [
             'index' => Pages\ListComplaints::route('/'),
+            'view' => Pages\ViewComplaint::route('/{record}'),
         ];
     }
 }
