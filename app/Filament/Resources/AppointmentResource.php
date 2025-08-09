@@ -238,6 +238,7 @@ class AppointmentResource extends Resource
                                 $patient = Patient::find($state);
                                 if ($patient) {
                                     $set('device_id', $patient->device_id);
+                                    $set('center_id', $patient->center_id);
                                 }
                                 if ($get('center_id') !== null && $patient->center_id !== $get('center_id')) {
                                     Notification::make()
@@ -261,7 +262,7 @@ class AppointmentResource extends Resource
                     Selector::make('center_id')
                         ->label('المركز')
                         ->reactive()
-                        ->default(fn() => auth()->user()->center_id)
+//                        ->default(fn() => auth()->user()->center_id)
                         ->relationship('center', 'name')
 //                        ->disabled(fn() => !auth()->user()->hasRole('super_admin'))
 //                        ->dehydrated()
