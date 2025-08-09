@@ -7,9 +7,11 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 class AuthController
 {
@@ -204,18 +206,21 @@ class AuthController
         if (!$patient) {
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
-        $request->validate([
-            'image' => ['required', 'image', 'max:2048'],
-        ]);
-        if ($patient->image) {
-            Storage::disk('public')->delete($patient->image);
+        try {
+            if ($patient->image && Storage::disk('public')->exists($patient->image)) {
+                Storage::disk('public')->delete($patient->image);
+            }
+            $path = $request->file('image')->store('patients', 'public');
+            $patient->image = $path;
+            $patient->save();
+            return response()->json([
+                'message' => 'تم رفع الصورة بنجاح',
+                'image_url' => Storage::disk('public')->url($path),
+            ], 201);
+        } catch (Throwable $e) {
+            Log::error('Image upload failed', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'Upload failed'], 500);
         }
-        $path = $request->file('image')->store('patients', 'public');
-        $patient->image = $path;
-        $patient->save();
-        return response()->json([
-            'message' => 'تم رفع الصورة بنجاح',
-            'image_url' => Storage::disk('public')->url($path),
-        ], 201);
     }
+
 }
