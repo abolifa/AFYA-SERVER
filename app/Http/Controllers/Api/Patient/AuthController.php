@@ -206,20 +206,26 @@ class AuthController
         if (!$patient) {
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
+        // in your controller
         try {
             if ($patient->image && Storage::disk('public')->exists($patient->image)) {
                 Storage::disk('public')->delete($patient->image);
             }
+
             $path = $request->file('image')->store('patients', 'public');
             $patient->image = $path;
             $patient->save();
+
             return response()->json([
                 'message' => 'تم رفع الصورة بنجاح',
                 'image_url' => Storage::disk('public')->url($path),
             ], 201);
         } catch (Throwable $e) {
-            Log::error('Image upload failed', ['error' => $e->getMessage()]);
-            return response()->json(['message' => 'Upload failed'], 500);
+            Log::error('Image upload failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'message' => 'Upload failed',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 
