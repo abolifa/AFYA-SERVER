@@ -200,8 +200,6 @@ class AuthController
     }
 
 
-    use Illuminate\Support\Facades\Storage;
-
     public function uploadImage(Request $request): JsonResponse
     {
         $patient = $request->user();
