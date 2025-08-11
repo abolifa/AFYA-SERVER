@@ -24,7 +24,7 @@ class PatientFactory extends Factory
     {
         return [
             'file_number' => $this->faker->unique()->numerify('########'),
-            'national_id' => $this->faker->unique()->numerify('1###########'),
+            'national_id' => $this->faker->unique()->numerify('11##########'),
             'family_issue_number' => $this->faker->optional()->numerify('##########'),
             'name' => $this->faker->name(),
             'phone' => $this->faker->unique()->numerify('09########'),

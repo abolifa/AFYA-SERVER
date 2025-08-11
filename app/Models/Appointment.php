@@ -27,6 +27,7 @@ class Appointment extends Model
     protected $guarded = ['id'];
 
     protected $appends = ['is_dirty'];
+    
 
     public function center(): BelongsTo
     {
