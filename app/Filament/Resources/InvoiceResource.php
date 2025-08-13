@@ -48,7 +48,7 @@ class InvoiceResource extends Resource
                         ->default('pending')
                         ->required(fn(string $context) => $context === 'edit')
                         ->disabled(fn(string $context) => $context === 'create'),
-                ])->columns(),
+                ])->columns(3),
 
 
                 Forms\Components\Section::make('الأصناف')
