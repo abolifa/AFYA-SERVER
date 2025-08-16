@@ -37,4 +37,10 @@ class CenterController
         $centers = Center::query()->select('id', 'name')->get();
         return response()->json($centers);
     }
+
+    public function guestCenters(): JsonResponse
+    {
+        $centers = Center::with('doctors', 'schedules')->get();
+        return response()->json($centers);
+    }
 }
