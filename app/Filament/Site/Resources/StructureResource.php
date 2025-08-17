@@ -79,7 +79,6 @@ class StructureResource extends Resource
                         'unit' => 'وحدة',
                         'center' => 'مركز',
                         'office' => 'مكتب',
-                        default => $state,
                     })
                     ->badge()
                     ->alignCenter()
