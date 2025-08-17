@@ -26,8 +26,9 @@ class SitePanelProvider extends PanelProvider
             ->id('site')
             ->path('site')
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Blue,
             ])
+            ->font('Cairo')
             ->discoverResources(in: app_path('Filament/Site/Resources'), for: 'App\\Filament\\Site\\Resources')
             ->discoverPages(in: app_path('Filament/Site/Pages'), for: 'App\\Filament\\Site\\Pages')
             ->pages([

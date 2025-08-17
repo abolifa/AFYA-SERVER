@@ -9,10 +9,13 @@ use App\Http\Controllers\Api\Patient\HomeController;
 use App\Http\Controllers\Api\Patient\OrderController;
 use App\Http\Controllers\Api\Patient\PrescriptionController;
 use App\Http\Controllers\Api\Patient\ProductController;
+use App\Http\Controllers\AwarenessController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SliderController;
 use App\Http\Controllers\StatsController;
+use App\Http\Controllers\StructureController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -83,6 +86,7 @@ Route::prefix('announcements')->group(function () {
     Route::get('/{announcement}', [AnnouncementController::class, 'show']);
 });
 
+
 Route::prefix('sliders')->group(function () {
     Route::get('/', [SliderController::class, 'index']);
 });
@@ -91,4 +95,22 @@ Route::prefix('posts')->group(function () {
     Route::get('/', [PostController::class, 'index']);
     Route::get('/{slug}', [PostController::class, 'show']);
     Route::get('/{slug}/related', [PostController::class, 'related']);
+});
+
+
+Route::prefix('settings')->group(function () {
+    Route::get('/about', [SettingController::class, 'getAbout']);
+    Route::get('/privacy-policy', [SettingController::class, 'getPrivacyPolicy']);
+    Route::get('/terms', [SettingController::class, 'getTerms']);
+    Route::get('/faq', [SettingController::class, 'getFaq']);
+    Route::get('/contact', [SettingController::class, 'getContact']);
+});
+
+Route::prefix('structures')->group(function () {
+    Route::get('/', [StructureController::class, 'index']);
+});
+
+Route::prefix('awareness')->group(function () {
+    Route::get('/', [AwarenessController::class, 'index']);
+    Route::get('/{id}', [AwarenessController::class, 'show']);
 });
