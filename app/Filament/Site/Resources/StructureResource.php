@@ -62,38 +62,47 @@ class StructureResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('parent_id')
-                    ->numeric()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('name')
+                    ->label('الاسم')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('parent.name')
+                    ->label('الهيكل الأب')
+                    ->alignCenter()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('type')
+                    ->label('النوع')
+                    ->formatState(fn(string $state) => match ($state) {
+                        'authority' => 'هيئة',
+                        'directorate' => 'إدارة',
+                        'department' => 'قسم',
+                        'division' => 'شعبة',
+                        'unit' => 'وحدة',
+                        'center' => 'مركز',
+                        'office' => 'مكتب',
+                        default => $state,
+                    })
+                    ->badge()
+                    ->alignCenter()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('phone')
+                    ->label('الهاتف')
+                    ->alignCenter()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
+                    ->label('البريد')
+                    ->alignCenter()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('address')
+                    ->label('العنوان')
+                    ->alignCenter()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                Tables\Actions\DeleteAction::make(),
             ]);
     }
 
