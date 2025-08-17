@@ -23,19 +23,21 @@ class ComplaintResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
+                    ->label('الاسم')
+                    ->placeholder('غير معروف'),
                 Tables\Columns\TextColumn::make('phone')
-                    ->searchable(),
+                    ->label('الهاتف')
+                    ->placeholder('غير معروف')
+                    ->alignCenter(),
                 Tables\Columns\TextColumn::make('message')
-                    ->searchable(),
+                    ->label('الرسالة')
+                    ->limit(50)
+                    ->alignCenter()
+                    ->placeholder('لا توجد رسالة'),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->label('تاريخ الإنشاء')
+                    ->alignCenter()
+                    ->date('d/m/Y'),
             ])
             ->filters([
                 //

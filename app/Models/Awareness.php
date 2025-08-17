@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @method static whereRaw(string $string, array $array)
+ * @method static count()
  */
 class Awareness extends Model
 {

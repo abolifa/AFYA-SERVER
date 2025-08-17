@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Patient\ProductController;
 use App\Http\Controllers\AwarenessController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\PostViewController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SliderController;
 use App\Http\Controllers\StatsController;
@@ -74,6 +75,7 @@ Route::middleware('auth:sanctum')->prefix('alerts')->group(function () {
     Route::delete('/{id}', [AlertController::class, 'destroy']);
 });
 Route::middleware('auth:sanctum')->get('/notifications', [AlertController::class, 'getNotifications']);
+// End of Patient Routes
 
 
 // Site Routes
@@ -97,6 +99,8 @@ Route::prefix('posts')->group(function () {
     Route::get('/{slug}/related', [PostController::class, 'related']);
 });
 
+Route::post('/track-view', [PostViewController::class, 'store'])
+    ->middleware(['throttle:60,1']);
 
 Route::prefix('settings')->group(function () {
     Route::get('/about', [SettingController::class, 'getAbout']);
