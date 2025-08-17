@@ -71,7 +71,7 @@ class StructureResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('type')
                     ->label('النوع')
-                    ->formatState(fn(string $state) => match ($state) {
+                    ->formatStateUsing(fn(string $state) => match ($state) {
                         'authority' => 'هيئة',
                         'directorate' => 'إدارة',
                         'department' => 'قسم',
