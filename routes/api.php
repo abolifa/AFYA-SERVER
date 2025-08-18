@@ -61,11 +61,13 @@ Route::middleware('auth:sanctum')->prefix('appt-id')->group(function () {
 Route::middleware('auth:sanctum')->prefix('products')->group(function () {
     Route::get('/', [ProductController::class, 'index']);
 });
-Route::middleware('auth:sanctum')->prefix('centers')->group(function () {
-    Route::get('/', [CenterController::class, 'index']);
+Route::prefix('centers')->group(function () {
+    Route::get('/', [CenterController::class, 'index'])->middleware('auth:sanctum');
     Route::get('/get', [CenterController::class, 'getCenters']);
-    Route::get('{center}/doctors', [CenterController::class, 'getDoctors']);
-    Route::get('{center}/schedule', [CenterController::class, 'getSchedule']);
+    Route::get('{center}/doctors', [CenterController::class, 'getDoctors'])->middleware('auth:sanctum');
+    Route::get('{center}/schedule', [CenterController::class, 'getSchedule'])->middleware('auth:sanctum');
+//    For Archive app
+    Route::post('/check', [CenterController::class, 'checkCenter']);
 });
 Route::middleware('auth:sanctum')->prefix('alerts')->group(function () {
     Route::get('/', [AlertController::class, 'index']);

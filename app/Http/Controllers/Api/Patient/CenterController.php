@@ -43,4 +43,29 @@ class CenterController
         $centers = Center::with('doctors', 'schedules')->get();
         return response()->json($centers);
     }
+
+
+    public function checkCenter(Request $request): JsonResponse
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $center = Center::query()
+            ->where('name', $request->name)
+            ->first();
+
+        if ($center) {
+            return response()->json([
+                'exists' => true,
+                'center' => $center,
+            ]);
+
+        } else {
+            return response()->json([
+                'exists' => false,
+                'message' => 'لم يتم العثور على المركز',
+            ], 404);
+        }
+    }
 }
