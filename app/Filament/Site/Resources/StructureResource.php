@@ -55,6 +55,27 @@ class StructureResource extends Resource
                 Forms\Components\TextInput::make('address')
                     ->label('العنوان')
                     ->maxLength(255),
+                Forms\Components\Repeater::make('employees')
+                    ->label('الأعضاء')
+                    ->columnSpanFull()
+                    ->columns(4)
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->label('الاسم')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('position')
+                            ->label('الوظيفة')
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('phone')
+                            ->label('الهاتف')
+                            ->tel()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('email')
+                            ->label('البريد الإلكتروني')
+                            ->email()
+                            ->maxLength(255),
+                    ]),
             ]);
     }
 
